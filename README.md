@@ -1,75 +1,86 @@
-# React + TypeScript + Vite
+# Relay-Mini
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lightweight, educational implementation of the Relay architectural pattern. This project demonstrates how to build a declarative, fragment-based data layer for React applications using GraphQL principles.
 
-Currently, two official plugins are available:
+## Core features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Normalized Store: A centralized, flat-map data store that ensures "Single Source of Truth."
+- Data Masking: Components can only access the data they specifically requested in their Fragments.
+- Query Stitching: Automatically aggregates child component data needs into a single parent request.
+- Publisher/Subscriber: "Point-to-point" UI updates—only components whose data has changed will re-render.
+- Optimistic UI & Rollback: Instant UI feedback with the ability to revert to a previous state if a mutation fails.
 
-## React Compiler
+## API reference
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+`createFragment(config)`
 
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Defines the data requirements for a component.
 
 ```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+const PostFragment = createFragment({
+  name: "PostItem_post",
+  fields: ["id", "title", "content"]
+});
 ```
+
+
+`useFragment(fragment, reference)`
+
+The primary hook for reading data. It subscribes the component to the store and returns masked data.
+
+```js
+const data = useFragment(PostFragment, props.postRef);
+```
+
+`useMutation(fragment)`
+
+Handles data updates. Returns a commit function and an inFlight (loading) boolean.
+
+```js
+const [commit, inFlight] = useMutation(PostFragment);
+
+const onUpdate = () => {
+  commit({
+    variables: { id: "1", title: "New Title" },
+    optimisticResponse: { id: "1", title: "New Title 2" }
+  });
+};
+```
+
+## Example usage
+1. The child (PostItem)
+```js
+const PostItem = ({ postRef }) => {
+  const data = useFragment(PostFragment, { __ref: postRef.id });
+  const [commit, inFlight] = useMutation(PostFragment);
+
+  return (
+    <li style={{ opacity: inFlight ? 0.5 : 1 }}>
+      {data.title}
+      <button onClick={() => commit({ variables: { id: data.id, title: "Updated!" } })}>
+        Update
+      </button>
+    </li>
+  );
+};
+```
+
+2. The parent (NewsFeed)
+```js
+const NewsFeed = () => {
+  const data = useFragment(FeedFragment, { __ref: "viewer-1" });
+
+  return (
+    <ul>
+      {data.posts.map(post => (
+        <PostItem key={post.id} postRef={post} />
+      ))}
+    </ul>
+  );
+};
+```
+
+## Why Relay?
+- Co-location: Data needs live inside the component file.
+- Efficiency: One network request for the entire page, but only tiny re-renders in the UI.
+- Predictability: Data masking prevents "hidden dependencies" where a component breaks because a parent stopped fetching a certain field.
