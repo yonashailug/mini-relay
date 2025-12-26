@@ -4,15 +4,13 @@ import "./queryStitcher";
 import { useFragment } from './useFragment'
 import { useMutation } from './useMutation';
 
-const PostItemComponent = ({ postRef }: {
-  postRef: string
-}) => {
+const PostItemComponent = ({ postRef }) => {
   const data = useFragment(
     {
       name: "PostItem_post",
       fields: ["id", "title", "content"]
   }, {
-    __ref: postRef
+    __ref: postRef.id
   })
 
   const [commit] = useMutation({
@@ -58,7 +56,7 @@ function App() {
       </div>
       <div className="posts">
         <ul>
-        {data.posts?.map((post) => <PostItemComponent key={post.id} postRef={post.id} />)}
+        {data.posts?.map((post) => <PostItemComponent key={post.id} postRef={post} />)}
       </ul>
       </div>
     </>
