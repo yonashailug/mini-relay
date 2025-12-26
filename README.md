@@ -2,6 +2,8 @@
 
 A lightweight, educational implementation of the Relay architectural pattern. This project demonstrates how to build a declarative, fragment-based data layer for React applications using GraphQL principles.
 
+Learn about Relay [here](https://relay.dev/docs/)
+
 ## Core features
 
 - Normalized Store: A centralized, flat-map data store that ensures "Single Source of Truth."
