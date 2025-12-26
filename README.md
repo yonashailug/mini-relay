@@ -86,3 +86,11 @@ const NewsFeed = () => {
 - Co-location: Data needs live inside the component file.
 - Efficiency: One network request for the entire page, but only tiny re-renders in the UI.
 - Predictability: Data masking prevents "hidden dependencies" where a component breaks because a parent stopped fetching a certain field.
+
+## ⚠️ Limitations and mocked layers
+1. The network layer (mocked)
+2. The compiler (manual)
+The "Magic" of Relay usually comes from a build-time compiler that generates code from GraphQL strings.
+3. Garbage collection (not implemented)
+4. Global id collisions (not implemented)
+5. etc.. ;)
