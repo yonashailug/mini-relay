@@ -1,36 +1,7 @@
-import { useCallback } from 'react';
 import './App.css'
 import "./queryStitcher";
-import { useFragment } from './useFragment'
-import { useMutation } from './useMutation';
-
-const PostItemComponent = ({ postRef }) => {
-  const data = useFragment(
-    {
-      name: "PostItem_post",
-      fields: ["id", "title", "content"]
-  }, {
-    __ref: postRef.id
-  })
-
-  const [commit] = useMutation({
-    name: "PostItem_post",
-    fields: ["id", "title", "content"]
-  });
-
-  const onPostUpdate = useCallback(() => {
-    commit({
-      variables: {
-        id: data.id,
-        title: data.title + " (updated)"
-      }
-    })
-  }, [commit, data.id])
-
-  return (
-    <li key={data.id}>{data.title} - <button onClick={onPostUpdate}>update</button></li>
-  )
-}
+import { useFragment } from './hooks/useFragment'
+import { PostItem } from './components/PostItem';
 
 function App() {
   const data = useFragment(
@@ -48,15 +19,10 @@ function App() {
 
   return (
     <>
-      <h1>Relay mini</h1>
-      <div className="card">
-        <p>
-          Relay mini implementation for the sake of learning :)
-        </p>
-      </div>
+      <h2>Mini Relay implementation</h2>
       <div className="posts">
         <ul>
-        {data.posts?.map((post) => <PostItemComponent key={post.id} postRef={post} />)}
+        {data.posts?.map((post) => <PostItem key={post.id} postRef={post} />)}
       </ul>
       </div>
     </>

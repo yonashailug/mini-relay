@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { store } from "./store";
+import { store } from "../store";
 
 export function useFragment(fragment: any, dataRef: { __ref: string }) {
     const [_, setVersion] = useState(0);
